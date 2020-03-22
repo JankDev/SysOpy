@@ -1,0 +1,7 @@
+1.1 lstat doesnt follow symbolic links
+fstat takes a file descriptor
+
+1.2
+S_IFMT - is a bitmask used to get only the  file  permissions that we need
+
+nie można bo nie użylimsy S_IFMT
