@@ -1,6 +1,8 @@
 *
-
+!.git
 !.gitignore
-!*.c
-!*.h
-!Makefile
+!lab*/
+!shell/
+!**/*.c
+!**/*.h
+!**/Makefile
