@@ -5,5 +5,5 @@ link: compile
 run: link
 		./tests dummy2
 clean:
-		rm *.o
+		ls -I "*.c" -I "Makefile" -I "*.h" | xargs rm -f
 .PHONY: clean
