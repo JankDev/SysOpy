@@ -12,6 +12,7 @@ int main(int argc, char const *argv[])
     const char *server_fifo = argv[1];
 
     int sdesc = connect_to_server(server_fifo);
+    int pdesk;
 
     if (sdesc == -1)
     {
@@ -23,29 +24,46 @@ int main(int argc, char const *argv[])
         perror("Error creating client fifo");
     }
 
-    int pdesk = open(fifo_path, O_RDONLY);
-
-    if (pdesk == -1)
+    while (1)
     {
-        perror("Error opening fifo");
+        puts("Type the command the server should execute");
+        fflush(stdout);
+
+        char cmd[MAX_BUF_SIZE];
+        scanf("%s", cmd);
+
+        if (strcmp("exit", cmd) == 0)
+        {
+            cleanup(sdesc, pdesk, fifo_path);
+            exit(1);
+        }
+
+        if (write_msg(cmd, fifo_path, sdesc) == -1)
+        {
+            cleanup(sdesc, pdesk, fifo_path);
+            exit(-1);
+        }
+
+        pdesk = open(fifo_path, O_RDONLY);
+
+        if (pdesk == -1)
+        {
+            cleanup(sdesc, pdesk, fifo_path);
+            perror("Error opening fifo");
+        }
+
+        char buf[MAX_BUF_SIZE];
+        if (read(pdesk, buf, MAX_BUF_SIZE) == -1)
+        {
+            cleanup(sdesc, pdesk, fifo_path);
+            perror("Error reading response from server");
+        }
+
+        fputs(buf, stdout);
+        memset(buf, 0, MAX_BUF_SIZE);
     }
 
-    if (write_msg("ls", sdesc) == -1)
-    {
-        exit(-1);
-    }
-
-    char buf[MAX_BUF_SIZE];
-    if (read(pdesk, buf, MAX_BUF_SIZE) == -1)
-    {
-    }
-
-    printf("%s", buf);
-
-    close(pdesk);
-    close(sdesc);
-
-    unlink(fifo_path);
+    cleanup(pdesk, sdesc, fifo_path);
 
     return 0;
 }

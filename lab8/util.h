@@ -5,14 +5,25 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <string.h>
 
 #define MAX_BUF_SIZE 100
 
-int write_msg(char *text, int sdesc)
+typedef struct
+{
+    char cmd[MAX_BUF_SIZE];
+    char fifo_path[MAX_BUF_SIZE];
+} message;
+
+int write_msg(char *cmd, const char *client_fifo, int sdesc)
 {
     int bwrite;
 
-    if ((bwrite = write(sdesc, text, MAX_BUF_SIZE)) == -1)
+    message msg;
+    strcpy(msg.cmd, cmd);
+    strcpy(msg.fifo_path, client_fifo);
+
+    if ((bwrite = write(sdesc, &msg, sizeof(msg))) == -1)
     {
         perror("Error writing message");
         return -1;
@@ -35,6 +46,14 @@ int connect_to_server(const char *server_fifo)
     puts("Connected to server");
 
     return sdesc;
+}
+
+void cleanup(int fdesc, int fdesc2, const char *fifo_path)
+{
+    close(fdesc);
+    close(fdesc2);
+
+    unlink(fifo_path);
 }
 
 #endif

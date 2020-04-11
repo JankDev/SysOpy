@@ -8,7 +8,7 @@
 
 const char *fifo_path = "server_fifo";
 
-char *read_client_requests(int fdesc);
+void read_client_requests(int fdesc, message *msg);
 void execute_request(char *cmd, int cdesc);
 
 int main(int argc, char const *argv[])
@@ -23,52 +23,58 @@ int main(int argc, char const *argv[])
     }
 
     int fdesc = open(fifo_path, O_RDONLY);
+    int cdesc;
 
     if (fdesc == -1)
     {
         perror("Error opening fifo");
         printf("Server exiting...");
+        cleanup(cdesc, fdesc, fifo_path);
         exit(-1);
     }
+    message *msg;
+    while (1)
+    {
+        msg = malloc(sizeof(message));
+        read_client_requests(fdesc, msg);
 
-    char *cmd;
-    int cdesc = open("client_fifo", O_WRONLY);
+        cdesc = open(msg->fifo_path, O_WRONLY);
 
-    cmd = read_client_requests(fdesc);
+        if (cdesc == -1)
+        {
+            cleanup(cdesc, fdesc, fifo_path);
+            perror("Error connecting to client");
+        }
 
-    execute_request(cmd, cdesc);
+        execute_request(msg->cmd, cdesc);
 
-    close(cdesc);
-    close(fdesc);
-    
-    unlink(fifo_path);
+        free(msg);
+    }
+
+    cleanup(cdesc, fdesc, fifo_path);
 
     return 0;
 }
 
-char *read_client_requests(int fdesc)
+void read_client_requests(int fdesc, message *msg)
 {
-    char *buf = malloc(sizeof(char) * MAX_BUF_SIZE);
-
-    if (read(fdesc, buf, MAX_BUF_SIZE) == -1)
+    if (read(fdesc, msg, sizeof(*msg)) == -1)
     {
         perror("Error reding from fifo");
         exit(-1);
     }
 
-    return buf;
+    return;
 }
 
 void execute_request(char *cmd, int cdesc)
 {
-
     switch (fork())
     {
     case -1:
         perror("Error forking");
         exit(-1);
     case 0:
-        printf("In child");
         close(1);
         dup2(cdesc, 1);
         execlp(cmd, cmd, NULL);
