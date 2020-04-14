@@ -4,11 +4,14 @@ int main(int argc, char const *argv[])
 {
     int semid = get_sem();
 
-    while (1)
+    for (int i = 0;; i++)
     {
-        decrease(semid, 0);
-        printf("pid=%d writing...\n", getpid());
         increase(semid, 0);
+        printf("pid=%d writing...%d\n ", getpid(), i);
+        printf("Time is %ld\n", time(NULL));
+        sleep(3);
+        decrease(semid, 0);
+        sleep(1);
     }
 
     return 0;

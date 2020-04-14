@@ -9,6 +9,7 @@ int main(int argc, char const *argv[])
         if (is_readable(semid, 0))
         {
             printf("pid=%d reading... %d\n",getpid(),i);
+            printf("Time is %ld\n", time(NULL));
         }
     }
 

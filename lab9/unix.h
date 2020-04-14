@@ -8,5 +8,6 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <string.h>
+#include <time.h>
 
 //#define max(a,b) ((a)>(b)?(a):(b))
