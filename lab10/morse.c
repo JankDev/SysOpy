@@ -32,6 +32,7 @@ int main(void)
 
     tp.c_lflag &= ~(ICANON | ISIG | IEXTEN | ECHO);
     tp.c_iflag &= ~(INLCR | ICRNL | ISTRIP | INPCK | IXON | BRKINT);
+    
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &tp);
 
     parse_chars(code);
