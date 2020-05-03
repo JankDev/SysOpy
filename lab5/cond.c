@@ -42,17 +42,27 @@ void *increment(void *arg)
 {
     while (1)
     {
-        pthread_mutex_lock(&mutex);
-        if (globalvariable != MAXVAL)
+        if (pthread_mutex_lock(&mutex) != 0)
         {
-            globalvariable++;
-            pthread_mutex_unlock(&mutex);
+            fprintf(stderr, "Error locking mutext");
         }
-        else
+        if (globalvariable == MAXVAL)
         {
-            pthread_mutex_unlock(&mutex);
-            pthread_cond_signal(&cond);
+
+            if (pthread_mutex_unlock(&mutex) != 0)
+            {
+                fprintf(stderr, "Error unlocking mutex");
+            }
+            if (pthread_cond_signal(&cond) != 0)
+            {
+                fprintf(stderr, "Error signaling");
+            };
             break;
+        }
+        globalvariable++;
+        if (pthread_mutex_unlock(&mutex) != 0)
+        {
+            fprintf(stderr, "Error unlocking mutex");
         }
     }
 
@@ -62,10 +72,19 @@ void *increment(void *arg)
 
 void *printinfo(void *arg)
 {
-    pthread_mutex_lock(&mutex);
-    pthread_cond_wait(&cond, &mutex);
+    if (pthread_mutex_lock(&mutex) != 0)
+    {
+        fprintf(stderr, "Error locking mutext");
+    }
+    while (globalvariable != MAXVAL)
+    {
+        pthread_cond_wait(&cond, &mutex);
+    }
     fprintf(stdout, "The variable has reached max value\n");
-    pthread_mutex_unlock(&mutex);
+    if (pthread_mutex_unlock(&mutex) != 0)
+    {
+        fprintf(stderr, "Error unlocking mutex");
+    }
     pthread_exit((void *)0);
 }
 // ----------------------------------------------------------

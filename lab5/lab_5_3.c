@@ -47,7 +47,7 @@ int main (int argc, char *argv[]){
 
      for(i=0;i<NUM;i++){
           // tworzenie watkow
-       pthread_create(threads+i,&attr,calc,i*LENGTH);
+       pthread_create(threads+i,&attr,calc,(void *)(i*LENGTH));
      }
 
      //[1] destroy - not needed anymore
@@ -74,7 +74,7 @@ void* calc(void* arg)
      long* x = data.a;
      long mysum = 0;
      int i;
-     int start = arg;
+     int start = *(int *)&arg;
      int end = start + LENGTH;
      for (i=start;i<end;i++){
           mysum += x[i];
